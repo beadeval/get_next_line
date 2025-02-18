@@ -6,7 +6,7 @@
 /*   By: beade-va <beade-va@student.42.madrid>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/17 12:54:43 by beade-va          #+#    #+#             */
-/*   Updated: 2025/02/17 21:20:47 by beade-va         ###   ########.fr       */
+/*   Updated: 2025/02/18 23:23:58 by beade-va         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,10 +65,41 @@ static char	*extract_line(char *buffer)
     extracted_line = ft_substr(buffer, 0, line_length); //Extraemos la línea desde el inicio
     return (extracted_line);
 }
-
-char *get_next_line(int fd) //Lee un archivo línea por línea, devolviendo una línea completa en cada llamada.
+// Cuando get_next_line() extrae una línea, lo que sobra en buffer después del \n debe guardarse para la próxima llamada.
+// 📌 update_buffer() se encarga de eliminar la parte ya leída y actualizar buffer para empezar desde el siguiente carácter después de \n.
+static char	*update_buffer(char *buffer)
 {
-    if (fd < 0 || BUFFER_SIZE <= 0)
-        return (NULL);
-    return (NULL);
+	char	*new_buffer; //Guarda el contenido que sobra después de la línea extraída
+	int		line_length;
+	char	*line_position;
+    line_position = ft_strchr(buffer, '\n'); //El buffer tiene los datos acumulados hasta el momento
+    if (line_position) 
+        line_length = line_position - buffer + 1; //Calculamos la longitud de la línea hasta el salto de línea (termina justo antes) + \n
+    else //La cadena es una línea completa (o es todo lo que queda por leer)
+    line_length = ft_strlen(buffer);
+    new_buffer = ft_substr(buffer, line_length, ft_strlen(buffer) - line_length); //Creamos un nuevo buffer con el contenido restante (le pasa-
+    //mos el buffer, comenzamos a partir de donde hemos encontrado el salto de línea, y pasamos como argumento la longitud de la cadena a extraer, es decir,
+    //el contenido restante después de la línea extraída)
+    free(buffer); //Liberamos el buffer original porque el contenido se ha copiado en el nuevo buffer
+    return (new_buffer);
 }
+
+//Guardamos lo que nos queda por leer después de extraer cada línea (si no lo implementamos perdemos información y fallarían las llamadas
+//sucesivas)
+char	*get_next_line(int fd) //Lee un archivo línea por línea, devolviendo una línea completa en cada llamada.
+{
+	static char	*buffer;
+	char		*line;
+
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	buffer = read_and_accumulate(fd, buffer);
+	if (!buffer)
+		return (NULL);
+	line = extract_line(buffer);
+	buffer = update_buffer(buffer);
+	return (line);
+}
+
+
+
