@@ -6,7 +6,7 @@
 /*   By: beade-va <beade-va@student.42.madrid>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/17 12:54:43 by beade-va          #+#    #+#             */
-/*   Updated: 2025/02/18 23:23:58 by beade-va         ###   ########.fr       */
+/*   Updated: 2025/02/19 21:35:57 by beade-va         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,21 +34,27 @@ static char	*read_and_accumulate(int fd, char *buffer)
     
     buffer_temporary = malloc(BUFFER_SIZE + 1); //Lo reservamos para leer datos en bloques
     if (!buffer_temporary)
-    return (NULL);
+        return (NULL);
+    if (!buffer)
+        buffer = ft_strdup("");
+    bytes_read = 1;
     while (!ft_strchr(buffer, '\n') && bytes_read > 0) //Se segurirá leyendo mientras que buffer no tenga \n y read() devuelva datos
     {
         bytes_read = read(fd, buffer_temporary, BUFFER_SIZE); // Lee hasta BUFFER_SIZE bytes desde fd
-        if (bytes_read == -1) //Liberamos memoria y salimos (-1 -> ERROR, 0 -> no hay más para leer, >0 -> bytes leídos)
-		{
-			free(buffer_temporary);
-			return (NULL);
-		}
+        if (bytes_read == -1)  //Liberamos memoria y salimos (-1 -> ERROR, 0 -> no hay más para leer, >0 -> bytes leídos)
+        {
+            free(buffer_temporary);
+            return (NULL);
+        }
         buffer_temporary[bytes_read] = '\0';
-		buffer = ft_strjoin(buffer, buffer_temporary); //Acumulamos los datos del buffer
+        char *temp = ft_strjoin(buffer, buffer_temporary);
+        free(buffer);
+        buffer = temp; //Acumulamos los datos del buffer
     }
     free(buffer_temporary);
     return (buffer);
 }
+
 
 static char	*extract_line(char *buffer)
 {
@@ -91,15 +97,23 @@ char	*get_next_line(int fd) //Lee un archivo línea por línea, devolviendo una 
 	static char	*buffer;
 	char		*line;
 
+	printf("📌 get_next_line llamado\n");
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
+
 	buffer = read_and_accumulate(fd, buffer);
-	if (!buffer)
+	if (!buffer || *buffer == '\0') {  // ✅ Evitamos llamadas innecesarias
+		free(buffer);
 		return (NULL);
+	}
+
 	line = extract_line(buffer);
-	buffer = update_buffer(buffer);
+	char *temp = update_buffer(buffer);
+	buffer = temp;
 	return (line);
 }
+
+
 
 
 

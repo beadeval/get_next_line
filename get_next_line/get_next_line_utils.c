@@ -6,7 +6,7 @@
 /*   By: beade-va <beade-va@student.42.madrid>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/17 12:54:45 by beade-va          #+#    #+#             */
-/*   Updated: 2025/02/17 14:05:47 by beade-va         ###   ########.fr       */
+/*   Updated: 2025/02/19 21:16:37 by beade-va         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,14 +76,11 @@ char	*ft_strdup(const char *s)
 {
 	size_t	i;
 	char	*dest;
-	int		len;
 
-	i = 0;
-	while (s[i])
-		i++;
-	len = i;
-	dest = malloc(len + 1);
-	if (dest == NULL)
+	if (!s)
+		return (NULL);
+	dest = malloc(ft_strlen(s) + 1);
+	if (!dest)
 		return (NULL);
 	i = 0;
 	while (s[i])
@@ -94,6 +91,7 @@ char	*ft_strdup(const char *s)
 	dest[i] = '\0';
 	return (dest);
 }
+
 // Nos permite dividir el buffer entre "parte a devolver" y "parte pendiente". Cuando extraemos una línea,
 // necesitamos guardar la parte restante en el buffer estático.
 // Esta función extrae una parte de una cadena (s), comenzando en la posición start y copiando hasta len caracteres.
