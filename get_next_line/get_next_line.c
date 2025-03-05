@@ -6,7 +6,7 @@
 /*   By: beade-va <beade-va@student.42.madrid>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/17 12:54:43 by beade-va          #+#    #+#             */
-/*   Updated: 2025/02/19 21:48:42 by beade-va         ###   ########.fr       */
+/*   Updated: 2025/03/02 00:02:32 by beade-va         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static char	*read_and_accumulate(int fd, char *buffer)
 
 	buffer_temporary = malloc(BUFFER_SIZE + 1);
 	if (!buffer_temporary)
-		return (NULL);
+		return (free(buffer), NULL);
 	if (!buffer)
 		buffer = ft_strdup("");
 	bytes_read = 1;
@@ -28,17 +28,13 @@ static char	*read_and_accumulate(int fd, char *buffer)
 	{
 		bytes_read = read(fd, buffer_temporary, BUFFER_SIZE);
 		if (bytes_read == -1)
-		{
-			free(buffer_temporary);
-			return (NULL);
-		}
+			return (free(buffer_temporary), free(buffer), NULL);
 		buffer_temporary[bytes_read] = '\0';
 		temp = ft_strjoin(buffer, buffer_temporary);
 		free(buffer);
 		buffer = temp;
 	}
-	free(buffer_temporary);
-	return (buffer);
+	return (free(buffer_temporary), buffer);
 }
 
 static char	*extract_line(char *buffer)
@@ -79,18 +75,17 @@ char	*get_next_line(int fd)
 {
 	static char	*buffer;
 	char		*line;
-	char		*temp;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	buffer = read_and_accumulate(fd, buffer);
-	if (!buffer || *buffer == '\0')
-	{
-		free(buffer);
+	if (!buffer)
 		return (NULL);
-	}
+	if (!*buffer)
+		return (free(buffer), buffer = NULL, NULL);
 	line = extract_line(buffer);
-	temp = update_buffer(buffer);
-	buffer = temp;
+	buffer = update_buffer(buffer);
+	if (!buffer || !*buffer)
+		return (free(buffer), buffer = NULL, line);
 	return (line);
 }
