@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: beade-va <beade-va@student.42.madrid>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/17 12:54:43 by beade-va          #+#    #+#             */
-/*   Updated: 2025/03/06 12:42:06 by beade-va         ###   ########.fr       */
+/*   Created: 2025/03/06 12:13:00 by beade-va          #+#    #+#             */
+/*   Updated: 2025/03/06 12:16:29 by beade-va         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static char	*read_and_accumulate(int fd, char *buffer)
 {
@@ -36,6 +36,7 @@ static char	*read_and_accumulate(int fd, char *buffer)
 	}
 	return (free(buffer_temporary), buffer);
 }
+
 static char	*extract_line(char *buffer)
 {
 	char	*newline;
@@ -69,21 +70,22 @@ static char	*update_buffer(char *buffer)
 	free(buffer);
 	return (new_buffer);
 }
+
 char	*get_next_line(int fd)
 {
-	static char	*buffer; //Conserva su valor entre llamadas a la función (no se reinicia cada vez que entras).
+	static char	*buffer[4096];
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	buffer = read_and_accumulate(fd, buffer);
-	if (!buffer)
+	buffer[fd] = read_and_accumulate(fd, buffer[fd]);
+	if (!buffer[fd])
 		return (NULL);
-	if (!*buffer)
-		return (free(buffer), buffer = NULL, NULL);
-	line = extract_line(buffer);
-	buffer = update_buffer(buffer);
-	if (!buffer || !*buffer)
-		return (free(buffer), buffer = NULL, line);
+	if (!*buffer[fd])
+		return (free(buffer[fd]), buffer[fd] = NULL, NULL);
+	line = extract_line(buffer[fd]);
+	buffer[fd] = update_buffer(buffer[fd]);
+	if (!buffer[fd] || !*buffer[fd])
+		return (free(buffer[fd]), buffer[fd] = NULL, line);
 	return (line);
 }
